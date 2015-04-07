@@ -11,7 +11,7 @@ class BIBDParams(object):
         self.v = v
         self.k = k
         self.lambda_ = lambda_
-    
+
     def __repr__(self):
         return ("BIBDParams({t}, {v}, {k}, {lambda})".
             format(**self.get_params()))
@@ -27,7 +27,7 @@ class BIBDParams(object):
         r, b = None, None
         for params in self.reduced_t():
             r, b = b, params.lambda_
-        return {"t": self.t, "v": self.v, "b": b, "r": r, "k": self.k, 
+        return {"t": self.t, "v": self.v, "b": b, "r": r, "k": self.k,
                 "lambda": self.lambda_}
 
     def reduced_t(self):
@@ -39,7 +39,7 @@ class BIBDParams(object):
             if check != 0:
                 raise _bibderrors.BIBDParamsError("Invalid design parameters")
             else:
-                current = BIBDParams(current.t - 1, current.v, 
+                current = BIBDParams(current.t - 1, current.v,
                                      current.k, lambda_t)
         yield current
 
@@ -48,9 +48,9 @@ class BIBDParams(object):
             params = self.get_full_params()
         v, th, k, b = params['v'], params['t'] // 2, params['k'], params['b']
         return (v < k + th or
-                b >= math.factorial(v) // 
+                b >= math.factorial(v) //
                      math.factorial(th) // math.factorial(v - th))
-                
+
 
     __tests = [ray_chavdhuri_wilson_test]
 
@@ -60,4 +60,4 @@ class BIBDParams(object):
         except _bibderrors.BIBDParamsError:
             return False
         return all(test(self, params) for test in BIBDParams.__tests)
-    
+
