@@ -20,6 +20,14 @@ class BIBDParams(object):
         return ("{t}-({v},{k},{lambda})".
             format(**self.get_params()))
 
+    def __hash__(self):
+        return (hash(self.t) * 2**28 + hash(self.v) * 2**16 +
+                hash(self.k) * 2**8 + hash(self.lambda_))
+
+    def __eq__(self, other):
+        return (self.t == other.t and self.v == other.v and
+                self.k == other.k and self.lambda_ == other.lambda_)
+
     def get_params(self):
         return {"t": self.t, "v": self.v, "k": self.k, "lambda":self.lambda_}
 
@@ -71,10 +79,13 @@ class BIBDParams(object):
             if params.t == new_t:
                 return params
 
+    def is_symetric(self):
+        return self.v == self.get_full_params()['b']
+
     def remove_block(self):
-        if self.t != 2:
+        if self.t != 2 or not self.is_symetric():
             raise _bibderrors.BIBDParamsError(
-                    "Base params must have t = 2")
+                    "Base params must have t = 2 and design must be symetric")
         v, k, lambda_ = self.v, self.k, self.lambda_
         if v - k < 1 or k - lambda_ < 2:
             raise _bibderrors.BIBDParamsError(
