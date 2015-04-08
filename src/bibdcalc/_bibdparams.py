@@ -61,3 +61,58 @@ class BIBDParams(object):
             return False
         return all(test(self, params) for test in BIBDParams.__tests)
 
+    def decrease_t(self, new_t = None):
+        if new_t is None:
+            new_t = self.t - 1
+        if new_t > self.t or new_t < 0:
+            raise _bibderrors.BIBDParamsError(
+                    "Unable to decrease t parameter");
+        for params in self.reduced_t():
+            if params.t == new_t:
+                return params
+
+    def remove_block(self):
+        if self.t != 2:
+            raise _bibderrors.BIBDParamsError(
+                    "Base params must have t = 2")
+        v, k, lambda_ = self.v, self.k, self.lambda_
+        if v - k < 1 or k - lambda_ < 2:
+            raise _bibderrors.BIBDParamsError(
+                    "Invalid params for reduction")
+        return BIBDParams(2, v - k, k - lambda_, lambda_)
+
+    def remove_vertex(self):
+        if self.t <= 2:
+            raise _bibderrors.BIBDParamsError(
+                    "Base params must have t > 2")
+        for params in self.reduced_t():
+            if params.t == self.t - 1:
+                return BIBDParams(
+                    self.t - 1, self.v - 1, self.k,
+                    params.lambda_ - self.lambda_)
+
+    def complement(self):
+        if self.t != 2:
+            raise _bibderrors.BIBDParamsError(
+                    "Base params must have t = 2")
+        params = self.get_full_params()
+        v, b, r, k = params['v'], params['b'], params['r'], params['k']
+        lambda_ = params['lambda']
+        return BIBDParams(2, v, v - k, b - 2*r + lambda_)
+
+    def derive(self):
+        if self.t <= 2:
+            raise _bibderrors.BIBDParamsError(
+                    "Base params must have t > 2")
+        return BIBDParams(self.t - 1, self.v - 1, self.k - 1, self.lambda_)
+
+    def is_hadamard(self):
+        return (self.t == 2 and self.v == 4 * self.lambda_ + 3 and
+                self.k == 2 * self.lambda_ + 1)
+
+    def extend(self):
+        if not self.is_hadamard():
+            raise _bibderrors.BIBDParamsError(
+                    "Design params should be params for Hadamard design")
+        return BIBDParams(3, self.v + 1, self.k + 1, self.lambda_)
+
